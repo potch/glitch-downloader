@@ -35,8 +35,7 @@ const createWindow = () => {
     );
   }
 
-  // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 };
 
 // This method will be called when Electron has finished
@@ -46,6 +45,7 @@ const createWindow = () => {
 let projects = null;
 let credentials;
 
+// convert fetch response to readable stream
 const responseToReadable = (response) => {
   const reader = response.body.getReader();
   const rs = new Readable();
@@ -75,8 +75,10 @@ app.whenReady().then(() => {
     shell.showItemInFolder(appDownloadFolder);
   });
 
+  // get project list from glitch
   ipcMain.handle("getProjects", async (event, { id, persistentToken }) => {
     credentials = { id, persistentToken };
+    console.log(credentials);
     console.log("got GP args", id, persistentToken);
     const url = `https://api.glitch.com/v1/users/by/id/projects?id=${id}&limit=1000`;
     const result = await fetch(url, {
@@ -92,19 +94,20 @@ app.whenReady().then(() => {
     return response;
   });
 
+  // launch glitch login window
   ipcMain.handle("openGlitchWindow", async () => {
-    if (!glitchWindow) {
-      glitchWindow = new BrowserWindow({
-        width: 1024,
-        height: 720,
-        webPreferences: {
-          preload: path.join(__dirname, "preload.js"),
-        },
-      });
-    }
-    glitchWindow.loadURL("https://glitch.com");
+    glitchWindow = new BrowserWindow({
+      width: 1024,
+      height: 720,
+      webPreferences: {
+        preload: path.join(__dirname, "glitch-preload.js"),
+      },
+    });
+    glitchWindow.loadURL("https://glitch.com/dashboard");
+    // glitchWindow.webContents.openDevTools();
   });
 
+  // download single glitch project
   ipcMain.handle("downloadProject", async (event, project) => {
     console.log("downloading project", project.id);
     const appDownloadFolder = path.join(
@@ -129,9 +132,11 @@ app.whenReady().then(() => {
       }
     }
 
+    // get pacakge tarball
     const packageURL = `https://api.glitch.com/project/download/?authorization=${credentials.persistentToken}&projectId=${project.id}`;
     const packageStream = responseToReadable(await fetch(packageURL));
 
+    // extract tar and write individual files
     await new Promise((done, reject) => {
       const extract = tar.extract();
 
@@ -165,6 +170,7 @@ app.whenReady().then(() => {
       packageStream.pipe(unzip()).pipe(extract);
     });
 
+    // get assets and download them
     const assetManifestPath = path.join(appDownloadFolder, ".glitch-assets");
     let hasAssets = false;
     let gotAllAssets = true;
@@ -194,12 +200,14 @@ app.whenReady().then(() => {
           console.log(asset.name);
           try {
             const url = new URL(asset.url);
+            // old project have an expired domain, skip
             if (url.origin === "https://cdn.hyperdev.com") continue;
             await writeFile(
               path.join(assetOutPath, asset.name),
               responseToReadable(await fetch(asset.url))
             );
           } catch (e) {
+            // failing to get some assets isn't a showstopper, so just warn about it
             gotAllAssets = false;
             console.warn("failed to get asset", asset, e);
           }
@@ -215,26 +223,8 @@ app.whenReady().then(() => {
     }
     return { success: true };
   });
-
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
-  });
 });
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
 app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
+  app.quit();
 });
-
-/*https://api.glitch.com/v1/users/by/id/projects?id={user_id}&limit=1000*/
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.

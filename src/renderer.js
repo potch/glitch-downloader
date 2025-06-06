@@ -15,6 +15,7 @@ document.querySelector("#openDownloadFolder").addEventListener("click", (e) => {
 });
 
 API.onGotProjects((projects) => {
+  let downloading = false;
   const downloadAllProjects = async () => {
     const status = document.querySelector("#download-status");
     status.style.display = "block";
@@ -25,13 +26,23 @@ API.onGotProjects((projects) => {
       logs.innerText += o + "\n";
       logs.scrollTop = logs.scrollHeight;
     };
+
+    downloading = true;
+    document.body.classList.add("downloading");
+
     for (let i = 0; i < projects.length; i++) {
       const project = projects[i];
       progress.value = i;
       log("downloading project " + project.domain);
       const result = await downloadProject(project);
       log(JSON.stringify(result));
+      if (!downloading) {
+        document.body.classList.remove("downloading");
+        log("downloads stopped");
+        return;
+      }
     }
+    document.body.classList.remove("downloading");
     progress.value = projects.length;
     log("download complete!");
   };
@@ -46,12 +57,13 @@ API.onGotProjects((projects) => {
     const result = await API.downloadProject(project);
     console.log("download result", result);
     if (result.success) {
-      el.append(" ✅");
+      el.querySelector(".project_status").innerText = " ✅";
     } else {
       button.disabled = false;
       button.innerText = "Download Project";
       el.querySelector("button").disabled = false;
     }
+    document.querySelector("#openDownloadFolder").style.display = "block";
     return result;
   };
 
@@ -68,8 +80,13 @@ API.onGotProjects((projects) => {
       { id: "download-all" },
       _(
         "button",
-        { onclick: () => downloadAllProjects() },
+        { id: "download-start", onclick: () => downloadAllProjects() },
         "Download All Projects"
+      ),
+      _(
+        "button",
+        { id: "download-stop", onclick: () => (downloading = false) },
+        "Stop Download"
       ),
       _(
         "div",
@@ -100,7 +117,8 @@ API.onGotProjects((projects) => {
           onclick: (e) => downloadProject(project),
         },
         "Download Project"
-      )
+      ),
+      _("span", { className: "project_status" })
     );
     projectEl.setAttribute("data-project", project.id);
     projectList.append(projectEl);

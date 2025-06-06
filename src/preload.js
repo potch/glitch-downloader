@@ -12,14 +12,3 @@ contextBridge.exposeInMainWorld("API", {
   downloadProject: (project) => ipcRenderer.invoke("downloadProject", project),
   openDownloadFolder: () => ipcRenderer.invoke("openDownloadFolder"),
 });
-
-window.onload = () => {
-  if (window.location.origin === "https://glitch.com") {
-    const cachedUser = localStorage.getItem("cachedUser");
-    if (cachedUser) {
-      const { id, persistentToken } = JSON.parse(cachedUser);
-      console.log("got creds", id, persistentToken);
-      ipcRenderer.invoke("getProjects", { id, persistentToken });
-    }
-  }
-};
