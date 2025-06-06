@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld("API", {
   onGotProjects: (callback) =>
     ipcRenderer.on("gotProjects", (_event, projects) => callback(projects)),
   downloadProject: (project) => ipcRenderer.invoke("downloadProject", project),
+  openDownloadFolder: () => ipcRenderer.invoke("openDownloadFolder"),
 });
 
 window.onload = () => {
