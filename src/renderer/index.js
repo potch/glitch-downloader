@@ -6,11 +6,11 @@ const _ = (tag, props, ...children) => {
   return el;
 };
 
-document.querySelector("#openGlitch").addEventListener("click", (e) => {
+document.querySelector("#openGlitch").addEventListener("click", () => {
   API.openGlitchWindow();
 });
 
-document.querySelector("#openDownloadFolder").addEventListener("click", (e) => {
+document.querySelector("#openDownloadFolder").addEventListener("click", () => {
   API.openDownloadFolder();
 });
 
@@ -114,7 +114,7 @@ API.onGotProjects((projects) => {
         "button",
         {
           className: "project_download",
-          onclick: (e) => downloadProject(project),
+          onclick: () => downloadProject(project),
         },
         "Download Project"
       ),

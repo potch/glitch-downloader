@@ -1,15 +1,14 @@
-const { contextBridge, ipcRenderer } = require("electron");
-
-const checkBackButton = () => {
-  if (history.length > 1) {
-    backButton.style.display = "block";
-  }
-};
-
-window.addEventListener("hashchange", checkBackButton);
+const { ipcRenderer } = require("electron");
 
 window.addEventListener("load", () => {
   const backButton = document.createElement("button");
+
+  const checkBackButton = () => {
+    if (history.length > 1) {
+      backButton.style.display = "block";
+    }
+  };
+
   backButton.innerText = "⬅️ Back";
   backButton.setAttribute(
     "style",
@@ -19,6 +18,7 @@ window.addEventListener("load", () => {
     history.back();
   };
   document.body.append(backButton);
+  window.addEventListener("hashchange", checkBackButton);
   checkBackButton();
   if (window.location.origin === "https://glitch.com") {
     const poll = () => {

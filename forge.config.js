@@ -49,12 +49,12 @@ module.exports = {
             target: "main",
           },
           {
-            entry: "src/preload.js",
+            entry: "src/renderer/preload.js",
             config: "vite.preload.config.mjs",
             target: "preload",
           },
           {
-            entry: "src/glitch-preload.js",
+            entry: "src/renderer/glitch-preload.js",
             config: "vite.preload.config.mjs",
             target: "preload",
           },
