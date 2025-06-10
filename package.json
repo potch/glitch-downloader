@@ -8,6 +8,7 @@
     "start": "electron-forge start",
     "package": "DEBUG=electron-notarize* electron-forge package",
     "make": "DEBUG=electron-notarize* electron-forge make",
+    "make:notarized": "APPLE_NOTARIZE=1 DEBUG=electron-notarize* electron-forge make",
     "publish": "electron-forge publish",
     "lint": "eslint"
   },
