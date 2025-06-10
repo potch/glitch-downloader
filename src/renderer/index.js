@@ -15,6 +15,7 @@ document.querySelector("#openDownloadFolder").addEventListener("click", () => {
 });
 
 API.onGotProjects((projects) => {
+  projects.sort((a, b) => (a.domain > b.domain ? 1 : -1));
   let downloading = false;
   const downloadAllProjects = async () => {
     const status = document.querySelector("#download-status");
